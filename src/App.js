@@ -13,6 +13,11 @@ import InputAdornment from '@mui/material/InputAdornment';
 import FormControl from '@mui/material/FormControl';
 import TextField from '@mui/material/TextField';
 import Input from '@mui/material/Input';
+import Dialog from '@mui/material/Dialog';
+import DialogActions from '@mui/material/DialogActions';
+import DialogContent from '@mui/material/DialogContent';
+import DialogContentText from '@mui/material/DialogContentText';
+import DialogTitle from '@mui/material/DialogTitle';
 
 const style = {
   position: 'absolute',
@@ -29,6 +34,7 @@ const style = {
 function App() {
   const [posts, setPost] = useState([])
   const [open, setOpen] = useState(false);
+  const [openDialog, setDialog] = useState(false);
   const [username, setUserName] = useState('');
   const [password, setUserPassword] = useState('');
   const [email, setUserEmail] = useState('');
@@ -36,24 +42,17 @@ function App() {
   // const classes = style();
   useEffect(() => {
     const newUser = auth.onAuthStateChanged((authUser) => {
-      if(authUser){
+      if (authUser) {
         console.log(authUser)
         setUser(authUser);
-        if(authUser.displayName){
-
-        }else{
-          return authUser.updateProfile({
-            displayName: username,
-          });
-        }
-      }else{
+      } else {
         setUser(null);
       }
     })
     return () => {
       newUser();
     }
-  },[user, username])
+  }, [user, username])
   useEffect(() => {
     // it will run every single time when posts change
     db.collection('posts').onSnapshot(snapshot => {
@@ -63,10 +62,22 @@ function App() {
       })))
     })
   }, [posts])
-  const signUp = (event) =>{
+  const signUp = (event) => {
     event.preventDefault();
     auth.createUserWithEmailAndPassword(email, password)
-    .catch((error) => alert(error.message));  //validation
+      .then((authUser) => {
+        return authUser.user.updateProfile({
+          displayName: username
+        })
+      })
+      .catch((error) => alert(error.message));  //validation
+      setOpen(false);
+  }
+  const login = (event) => {
+    event.preventDefault();
+    auth.signInWithEmailAndPassword(email, password)
+    .catch((error) => alert(error.message));
+    setDialog(false);
   }
   return (
     <div className="App">
@@ -81,15 +92,15 @@ function App() {
           </Typography>
           <form>
             <div className='input'>
-              <TextField 
+              <TextField
                 className="textfield" id="outlined-basic" label="Username" value={username} variant="outlined" margin="normal"
-                onChange={(e) => {setUserName(e.target.value)}}/>
-              <TextField 
-                className="textfield" id="outlined-basic" label="Email" value={email} variant="outlined" margin="normal" 
-                onChange={(e) => {setUserEmail(e.target.value)}}/>
-              <TextField 
-                className="textfield" id="outlined-basic" label="Password" value={password} variant="outlined" margin="normal" 
-                onChange={(e) => {setUserPassword(e.target.value)}}/>
+                onChange={(e) => { setUserName(e.target.value) }} />
+              <TextField
+                className="textfield" id="outlined-basic" label="Email" value={email} variant="outlined" margin="normal"
+                onChange={(e) => { setUserEmail(e.target.value) }} />
+              <TextField
+                className="textfield" id="outlined-basic" label="Password" value={password} variant="outlined" margin="normal"
+                onChange={(e) => { setUserPassword(e.target.value) }} />
             </div>
             <div className="login">
               <Button onClick={signUp} variant="contained">Sign up</Button>
@@ -97,9 +108,31 @@ function App() {
           </form>
         </Box>
       </Modal>
+      <Dialog
+        open={openDialog}
+        onClose={() => {setDialog(false)}}
+      >
+        <DialogTitle id="alert-dialog-title">
+          {"Are you sure you want to LogOut?"}
+        </DialogTitle>
+        {/* <DialogContent>
+          <DialogContentText id="alert-dialog-description">
+          </DialogContentText>
+        </DialogContent> */}
+        <DialogActions>
+          <Button onClick={() => setDialog(false)}>No</Button>
+          <Button onClick={() => {auth.signOut(); setDialog(false)}}  autoFocus>
+            Yes
+          </Button>
+        </DialogActions>
+      </Dialog>
       <div className="app__header">
-        <Button className="signUp" onClick={() => { setOpen(true) }}>Sign up</Button>
-        <img className="app__headerImage"
+        {user ? (
+          <Button className="signUp" onClick={() => { setDialog(true) }}>LogOut</Button>
+        ) :
+          <Button className="signUp" onClick={() => { setOpen(true) }}>Sign up</Button>
+        }
+        < img className="app__headerImage"
           src="https://1000logos.net/wp-content/uploads/2017/02/Logo-Instagram.png"
           alt="image"
         />
