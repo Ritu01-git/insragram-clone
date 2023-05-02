@@ -1,7 +1,7 @@
-import Post from './Post.js';
+import Post from './Post';
 import './App.css';
 import { useState, useEffect } from 'react';
-import { auth, db } from './firebase';
+import { auth, db } from './firebase.js';
 import { initializeApp } from 'firebase/app';
 import * as React from 'react';
 import Box from '@mui/material/Box';
@@ -18,7 +18,8 @@ import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
-
+import ImageUpload from './ImageUpload.js';
+import landingPage from './landingPage.js';
 const style = {
   position: 'absolute',
   top: '50%',
@@ -71,16 +72,24 @@ function App() {
         })
       })
       .catch((error) => alert(error.message));  //validation
-      setOpen(false);
+    setOpen(false);
   }
   const login = (event) => {
     event.preventDefault();
     auth.signInWithEmailAndPassword(email, password)
-    .catch((error) => alert(error.message));
+      .catch((error) => alert(error.message));
     setDialog(false);
   }
   return (
     <div className="App">
+      {/* {user?.displayName ? (
+        <ImageUpload username={user.displayName} />
+      ): (
+        <h3>
+          You need to Login first..
+        </h3>
+      )}
+       */}
       <Modal
         open={open}
         onClose={() => setOpen(false)}
@@ -110,18 +119,14 @@ function App() {
       </Modal>
       <Dialog
         open={openDialog}
-        onClose={() => {setDialog(false)}}
+        onClose={() => { setDialog(false) }}
       >
         <DialogTitle id="alert-dialog-title">
           {"Are you sure you want to LogOut?"}
         </DialogTitle>
-        {/* <DialogContent>
-          <DialogContentText id="alert-dialog-description">
-          </DialogContentText>
-        </DialogContent> */}
         <DialogActions>
           <Button onClick={() => setDialog(false)}>No</Button>
-          <Button onClick={() => {auth.signOut(); setDialog(false)}}  autoFocus>
+          <Button onClick={() => { auth.signOut(); setDialog(false) }} autoFocus>
             Yes
           </Button>
         </DialogActions>
@@ -142,6 +147,20 @@ function App() {
           <Post key={id} username={post.username} imageUrl={post.imageUrl} caption={post.caption} />
         ))
       }
+      {user?.displayName ? (
+        <ImageUpload username={user.displayName} />
+      ) : (
+        <h3>
+          You need to Login first..
+        </h3>
+      )}
+      {/* {user?.displayName ?  (
+        <landingPage></landingPage>
+      ): (
+<h1>user exist</h1>
+      )
+} */}
+
     </div>
   );
 }
